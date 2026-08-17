@@ -3,35 +3,39 @@ import game.model.GameState
 import game.model.UnitType
 class UnitManager(private val gameState: GameState) {
     val army = mutableMapOf<UnitType, Int>()
-    fun recruit(type: UnitType, amount: Int): Boolean {
-        val totalGold = type.goldCost * amount
-        val totalWood = type.woodCost * amount
-        if (gameState.gold >= totalGold && gameState.wood >= totalWood) {
-            gameState.gold -= totalGold
-            gameState.wood -= totalWood
-            army[type] = army.getOrDefault(type, 0) + amount
-            println("Recruited: $amount x ${type.displayName}")
-            return true
-        } else {
-            println("Not enough resources to recruit $amount x ${type.displayName}")
+    fun recruitUnit(type: UnitType, count: Int): Boolean {
+        val totalGoldCost = type.goldCost * count
+        val totalWoodCost = type.woodCost * count
+        val totalFoodCost = type.foodCost * count
+        if (gameState.gold < totalGoldCost || gameState.wood < totalWoodCost || gameState.food < totalFoodCost) {
+            println("❌ Not enough resources to recruit $count x ${type.displayName}!")
             return false
         }
+        gameState.gold -= totalGoldCost
+        gameState.wood -= totalWoodCost
+        gameState.food -= totalFoodCost
+        army[type] = army.getOrDefault(type, 0) + count
+        println("⚔️ Recruited $count x ${type.displayName}")
+        return true
+    }
+    fun calculateTotalAttack(): Int {
+        return army.entries.sumOf { (type, count) -> type.attack * count }
+    }
+    fun calculateTotalDefense(): Int {
+        return army.entries.sumOf { (type, count) -> type.defense * count }
+    }
+    fun getTotalFoodUpkeep(): Long {
+        return army.entries.sumOf { (type, count) -> type.foodUpkeep * count }
     }
     fun printArmy() {
         println("=== Kingdom Army ===")
         if (army.isEmpty()) {
             println("No units recruited yet.")
-        } else {
-            var totalAtk = 0
-            var totalDef = 0
-            army.forEach { (type, count) ->
-                val atk = type.attack * count
-                val def = type.defense * count
-                totalAtk += atk
-                totalDef += def
-                println("- ${type.displayName}: $count units (Atk: $atk, Def: $def)")
-            }
-            println("Total Army Power -> ATK: $totalAtk | DEF: $totalDef")
+            return
         }
+        army.forEach { (type, count) ->
+            println("* ${type.displayName}: $count units (Atk: ${type.attack * count}, Def: ${type.defense * count})")
+        }
+        println("Total Army Power -> ATK: ${calculateTotalAttack()} | DEF: ${calculateTotalDefense()}")
     }
 }

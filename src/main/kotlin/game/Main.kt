@@ -1,19 +1,18 @@
 ﻿package game
 import game.model.GameState
-import game.service.LandManager
-import game.service.ResourceManager
+import game.model.UnitType
+import game.service.UnitManager
 fun main() {
-    println("=== Kingdoms Core: Full Cycle Test ===")
+    println("=== Kingdoms Core: Military Test ===")
     val state = GameState()
-    val landManager = LandManager(state)
-    val resourceManager = ResourceManager(state, landManager)
-    println("\nInitial State:")
-    println("Food: ${state.food}, Wood: ${state.wood}, Gold: ${state.gold}, Population: ${state.population}")
-    println("\n--- Turn 1 (Base Land Production) ---")
-    resourceManager.produceResources()
-    println("\n--- Construction ---")
-    landManager.buildOnPlot(1, "farm")
-    landManager.buildOnPlot(2, "sawmill")
-    println("\n--- Turn 2 (Land + Buildings Production) ---")
-    resourceManager.produceResources()
+    val unitManager = UnitManager(state)
+    println("\n--- Starting Resources ---")
+    println("Gold: ${state.gold}, Wood: ${state.wood}, Food: ${state.food}")
+    println("\n--- Recruiting Units ---")
+    unitManager.recruitUnit(UnitType.SWORDSMAN, 1)
+    unitManager.recruitUnit(UnitType.ARCHER, 1)
+    println("\n--- Resources After Recruitment ---")
+    println("Gold: ${state.gold}, Wood: ${state.wood}, Food: ${state.food}")
+    println("\n--- Army Overview ---")
+    unitManager.printArmy()
 }
