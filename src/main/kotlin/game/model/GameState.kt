@@ -1,12 +1,13 @@
 ﻿package game.model
 data class GameState(
-    val kingdomName: String = "New Kingdom",
-    var gold: Long = 1000,
-    var wood: Long = 500,
-    var stone: Long = 500
+    var gold: Long = 100,
+    var wood: Long = 100,
+    var stone: Long = 50,
+    var food: Long = 100,
+    var population: Long = 10
 ) {
     fun printStatus() {
-        println("=== Status: $kingdomName ===")
-        println("Gold: $gold | Wood: $wood | Stone: $stone")
+        println("=== Status: Kingdom ===")
+        println("Gold: $gold | Wood: $wood | Stone: $stone | Food: $food | Population: $population")
     }
 }

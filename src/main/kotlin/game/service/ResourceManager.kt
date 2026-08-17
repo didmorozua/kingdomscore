@@ -1,37 +1,36 @@
 ﻿package game.service
-import game.model.BuildingType
 import game.model.GameState
-import game.model.Ruler
-import game.model.Trait
+import kotlin.math.roundToLong
 class ResourceManager(
     private val gameState: GameState,
-    private val buildingManager: BuildingManager,
-    private val ruler: Ruler
+    private val landManager: LandManager
 ) {
     fun produceResources() {
-        val incomeMultiplier = when (ruler.trait) {
-            Trait.GREEDY -> 1.20
-            Trait.CHARISMATIC -> 1.15
-            else -> 1.0
+        var foodGain = 0L
+        var woodGain = 0L
+        var goldGain = 0L
+        // 1. Прибуток від земель та будівель на них
+        landManager.plots.forEach { plot ->
+            // Бонуси від типу землі
+            foodGain += plot.terrain.foodBonus
+            woodGain += plot.terrain.woodBonus
+            goldGain += plot.terrain.goldBonus
+            // Бонуси від будівель
+            when (plot.buildingId) {
+                "farm" -> foodGain += 2
+                "sawmill" -> woodGain += 2
+                "market" -> goldGain += 3
+            }
         }
-        val baseGold = 50L
-        val baseWood = 30L
-        val baseStone = 15L
-        val goldBonus = buildingManager.buildings
-            .filter { it.type == BuildingType.GOLD_MINE }
-            .sumOf { it.level * 100L }
-        val woodBonus = buildingManager.buildings
-            .filter { it.type == BuildingType.LUMBER_MILL }
-            .sumOf { it.level * 80L }
-        val stoneBonus = buildingManager.buildings
-            .filter { it.type == BuildingType.QUARRY }
-            .sumOf { it.level * 60L }
-        val totalGold = ((baseGold + goldBonus) * incomeMultiplier).toLong()
-        val totalWood = ((baseWood + woodBonus) * incomeMultiplier).toLong()
-        val totalStone = ((baseStone + stoneBonus) * incomeMultiplier).toLong()
-        gameState.gold += totalGold
-        gameState.wood += totalWood
-        gameState.stone += totalStone
-        println("--- Income: +$totalGold Gold | +$totalWood Wood | +$totalStone Stone ---")
+        // 2. Споживання їжі населенням (0.35 на 1 людину)
+        val foodConsumption = (gameState.population * 0.35).roundToLong()
+        // 3. Застосування результатів
+        gameState.food = (gameState.food + foodGain - foodConsumption).coerceAtLeast(0)
+        gameState.wood += woodGain
+        gameState.gold += goldGain
+        println("--- Resource Cycle (Tick) ---")
+        println("Produced: +$foodGain Food, +$woodGain Wood, +$goldGain Gold")
+        println("Population consumed: -$foodConsumption Food")
+        println("Current Stock: ${gameState.food} Food, ${gameState.wood} Wood, ${gameState.gold} Gold")
     }
 }
