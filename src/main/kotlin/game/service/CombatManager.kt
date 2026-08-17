@@ -1,67 +1,39 @@
-package game.service
-
+﻿package game.service
 import game.model.GameState
-import game.model.Ruler
-import game.model.Trait
 import game.model.UnitType
-
-data class Enemy(val name: String, val attack: Int, val defense: Int, val goldLoot: Long)
-
 class CombatManager(
     private val gameState: GameState,
-    private val unitManager: UnitManager,
-    private val ruler: Ruler? = null
+    private val unitManager: UnitManager
 ) {
-    fun battle(enemy: Enemy): Boolean {
-        println("\n=== BATTLE: Kingdom vs ${enemy.name} ===")
-        
-        var totalAtk = 0
-        var totalDef = 0
-
-        unitManager.army.forEach { (type, count) ->
-            totalAtk += type.attack * count
-            totalDef += type.defense * count
-        }
-
-        if (ruler?.trait == Trait.WARRIOR) {
-            totalAtk = (totalAtk * 1.10).toInt()
-            totalDef = (totalDef * 1.10).toInt()
-            println("Warrior Leader Bonus (+10% Power) activated!")
-        }
-
-        println("Player Power -> ATK: $totalAtk | DEF: $totalDef")
-        println("Enemy Power  -> ATK: ${enemy.attack} | DEF: ${enemy.defense}")
-
-        val victory = totalAtk >= enemy.defense
-
-        if (victory) {
-            val loot = enemy.goldLoot
-            gameState.gold += loot
-            println("VICTORY! You defeated ${enemy.name} and captured $loot Gold.")
-            applyCasualties(casualtyRate = 0.2)
+    fun calculateArmyPower(): Int {
+        return unitManager.calculateTotalAttack() + unitManager.calculateTotalDefense()
+    }
+    fun attackEnemy(enemyPower: Int, rewardGold: Long): Boolean {
+        val playerPower = calculateArmyPower()
+        println("=== Battle Initiated ===")
+        println("Your Army Power: $playerPower | Enemy Power: $enemyPower")
+        if (playerPower >= enemyPower) {
+            println("🏆 Victory! You defeated the enemy forces.")
+            gameState.gold += rewardGold
+            println("Gained +$rewardGold Gold as war booty.")
             return true
         } else {
-            println("\nDEFEAT! Your army was destroyed and enemies captured the kingdom.")
-            println("GAME OVER! Your state has fallen.")
+            println("💀 Defeat! Your forces were overwhelmed.")
+            applyCasualties()
             return false
         }
     }
-
-    private fun applyCasualties(casualtyRate: Double) {
-        val updatedArmy = mutableMapOf<UnitType, Int>()
-
-        unitManager.army.forEach { (type, count) ->
-            val dead = (count * casualtyRate).toInt()
-            val remaining = count - dead
-            if (remaining > 0) {
-                updatedArmy[type] = remaining
-            }
-            if (dead > 0) {
-                println("Casualties: Lost $dead x ${type.displayName}")
+    private fun applyCasualties() {
+        if (unitManager.army.isEmpty()) return
+        println("Casualties sustained: lose 1 unit of each type.")
+        val keys = unitManager.army.keys.toList()
+        for (type in keys) {
+            val current = unitManager.army[type] ?: 0
+            if (current > 1) {
+                unitManager.army[type] = current - 1
+            } else {
+                unitManager.army.remove(type)
             }
         }
-
-        unitManager.army.clear()
-        unitManager.army.putAll(updatedArmy)
     }
 }
