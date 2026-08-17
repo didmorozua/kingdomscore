@@ -3,27 +3,24 @@ import game.model.GameState
 import kotlin.random.Random
 class EventManager(private val gameState: GameState) {
     fun triggerRandomEvent() {
-        val roll = Random.nextInt(1, 100)
-        println("\n📜 === RANDOM EVENT ===")
+        val roll = Random.nextInt(1, 101)
+        println("=== Kingdom Event ===")
         when {
             roll <= 30 -> {
-                val foundGold = Random.nextLong(100, 300)
-                gameState.gold += foundGold
-                println("💰 Merchant Guild Tax: Traveling merchants paid +$foundGold Gold in taxes!")
+                println("☀️ Drought! Crop yields dropped. Lost 15 Food.")
+                gameState.food = (gameState.food - 15).coerceAtLeast(0)
             }
             roll <= 60 -> {
-                val lostWood = Random.nextLong(30, 80)
-                if (gameState.wood >= lostWood) {
-                    gameState.wood -= lostWood
-                    println("🔥 Forest Fire: A bad storm caused a fire. Lost -$lostWood Wood!")
-                } else {
-                    println("🌧️ Heavy Rain: No damage caused.")
-                }
+                println("💰 Merchant Caravan! Trade flourish in the market. Gained +25 Gold.")
+                gameState.gold += 25
+            }
+            roll <= 85 -> {
+                println("🌲 Woodcutters' Find! Extra timber collected. Gained +20 Wood.")
+                gameState.wood += 20
             }
             else -> {
-                val bonusStone = Random.nextLong(40, 90)
-                gameState.stone += bonusStone
-                println("⛏️ Rich Vein: Miners discovered a dense rock layer! +$bonusStone Stone.")
+                println("⚔️ Bandit Raid! Bandits looted the treasury. Lost 20 Gold.")
+                gameState.gold = (gameState.gold - 20).coerceAtLeast(0)
             }
         }
     }
